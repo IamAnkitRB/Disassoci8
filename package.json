@@ -2,6 +2,7 @@
   "name": "disassoci8",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "dev": "ts-node-dev --respawn  src/index.ts",

@@ -5,6 +5,9 @@ import {
   HUBSPOT_CLIENT_SECRET,
   HUBSPOT_REDIRECT_URI,
 } from '../config';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export const handleOAuthCallback = async (
   req: Request,
@@ -29,15 +32,27 @@ export const handleOAuthCallback = async (
       }).toString(),
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } },
     );
-    console.log('token ::', tokenResponse);
-    console.log('token response::', tokenResponse.data);
+
     const accessToken = tokenResponse.data.access_token;
     const refreshToken = tokenResponse.data.refresh_token;
+    const expiresIn = tokenResponse.data.expires_in;
 
-    console.log('access token::', accessToken);
-    console.log('refresh token::', refreshToken);
+    const expireTime = new Date();
+    expireTime.setSeconds(expireTime.getSeconds() + expiresIn);
 
-    res.status(200).send('Authorization successful. Tokens stored.');
+    const newUser = await prisma.user.create({
+      data: {
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        expireTime: expireTime,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Authorization successful',
+      data: newUser,
+    });
   } catch (error: any) {
     console.error(
       'Error exchanging token:',
