@@ -1,5 +1,7 @@
-const greet = (name: string): string => {
-  return `Hello, ${name}!`;
-};
+import app from './app';
+import { PORT } from './config';
+import logger from './utils/logger';
 
-console.log(greet('World'));
+app.listen(PORT, () => {
+  logger.info(`Server started at PORT ${PORT}`);
+});
