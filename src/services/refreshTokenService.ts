@@ -65,6 +65,7 @@ export const ensureValidAccessToken = async (
       return newAccessToken;
     }
 
+    logger.info(`Access token is valid for user ${userId}`);
     return accessToken;
   } catch (error: any) {
     logger.error(

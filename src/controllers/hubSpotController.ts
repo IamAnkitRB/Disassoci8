@@ -6,6 +6,8 @@ import {
   HUBSPOT_REDIRECT_URI,
 } from '../config';
 import { PrismaClient } from '@prisma/client';
+import logger from '../utils/logger';
+import { fetchAllObjects, fetchObjectProperties } from '../utils/hubSpotUtils';
 
 const prisma = new PrismaClient();
 
@@ -54,10 +56,47 @@ export const handleOAuthCallback = async (
       data: newUser,
     });
   } catch (error: any) {
-    console.error(
+    logger.error(
       'Error exchanging token:',
       error.response?.data || error.message,
     );
     res.status(500).send('Error during OAuth process');
+  }
+};
+
+export const fetchObejcts = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const response = await fetchAllObjects();
+
+    res.status(200).json({
+      success: true,
+      data: response,
+    });
+  } catch (error: any) {
+    logger.error(``);
+  }
+};
+
+export const fetchProperties = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const response = await fetchObjectProperties('2-22394367');
+
+    const allObjectProperties: any = [];
+    response.map((prop: any) => {
+      allObjectProperties.push(prop.label);
+    });
+
+    res.status(200).json({
+      success: true,
+      data: allObjectProperties,
+    });
+  } catch (error: any) {
+    logger.error(``);
   }
 };
