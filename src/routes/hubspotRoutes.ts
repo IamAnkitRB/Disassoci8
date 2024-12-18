@@ -4,7 +4,9 @@ import controllers from '../controllers';
 const router = Router();
 
 router.get('/oauth/callback', controllers.handleOAuthCallback);
-router.get('/getObjects', controllers.fetchObejcts);
-router.get('/getProps', controllers.fetchProperties);
+router.post('/fetchObjects', controllers.fetchObejcts);
+router.post('/fetchProps', controllers.fetchProperties);
+router.post('/fethcAssociationLabels', controllers.fethcAssociationLabels);
+router.post('/disassociate', controllers.disassociateObjects);
 
 export default router;

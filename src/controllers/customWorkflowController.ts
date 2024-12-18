@@ -20,10 +20,21 @@ export const createCustomWorkflowAction = async (
           {
             typeDefinition: {
               name: 'objectInput',
-              type: 'string',
-              fieldType: 'text',
+              type: 'enumeration',
+              fieldType: 'select',
+              optionsUrl: `${API_BASE_URL}/hubspot/fetchObjects`,
             },
-            supportedValueTypes: ['OBJECT_PROPERTY'],
+            supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: true,
+          },
+          {
+            typeDefinition: {
+              name: 'associationLabelInput',
+              type: 'enumeration',
+              fieldType: 'checkbox',
+              optionsUrl: `${API_BASE_URL}/hubspot/fethcAssociationLabels`,
+            },
+            supportedValueTypes: ['STATIC_VALUE'],
             isRequired: true,
           },
           {
@@ -32,6 +43,15 @@ export const createCustomWorkflowAction = async (
               type: 'enumeration',
               fieldType: 'select',
               optionsUrl: `${API_BASE_URL}/hubspot/fetchProps`,
+            },
+            supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: true,
+          },
+          {
+            typeDefinition: {
+              name: 'optionsValueInput',
+              type: 'string',
+              fieldType: 'text',
             },
             supportedValueTypes: ['STATIC_VALUE'],
           },
@@ -44,12 +64,16 @@ export const createCustomWorkflowAction = async (
             actionCardContent:
               'Disassociate contact {{contactId}} from company {{companyId}}',
             inputFieldLabels: {
-              objectInput: 'Object Input',
-              optionsInput: 'Options Input',
+              objectInput: 'Object To Disassociate',
+              associationLabelInput: 'Association Label Input',
+              optionsInput: 'Only objects with this property',
+              optionsValueInput: 'Option Input Value',
             },
             inputFieldDescriptions: {
-              objectInput: 'Enter the object input value.',
-              optionsInput: 'Choose an option for the input.',
+              objectInput: 'Enter the object input value',
+              associationLabelInput: 'Select association labels',
+              optionsInput: 'Choose an option for the input',
+              optionsValueInput: 'With the value of',
             },
           },
         },
@@ -84,19 +108,20 @@ export const updateCustomWorkflowAction = async (
   res: Response,
 ) => {
   try {
-    const DEFINITION_ID = '177121947';
-    const response = await axios.post(
+    const DEFINITION_ID = '179706797';
+    const response = await axios.patch(
       `https://api.hubapi.com/automation/v4/actions/${HUBSPOT_APP_ID}/${DEFINITION_ID}`,
       {
         actionUrl: `${API_BASE_URL}/hubspot/disassociate`,
         inputFields: [
           {
             typeDefinition: {
-              name: 'objectInput',
-              type: 'string',
-              fieldType: 'text',
+              name: 'objectsInput',
+              type: 'enumeration',
+              fieldType: 'checkbox',
+              optionsUrl: `${API_BASE_URL}/hubspot/fetchObjects`,
             },
-            supportedValueTypes: ['OBJECT_PROPERTY'],
+            supportedValueTypes: ['STATIC_VALUE'],
             isRequired: true,
           },
           {
@@ -111,17 +136,17 @@ export const updateCustomWorkflowAction = async (
         ],
         labels: {
           en: {
-            actionName: 'Disassociate Company and Contact',
+            actionName: 'Disassociate Currenct Object from other',
             actionDescription:
               'This action will disassociate a contact from a company.',
             actionCardContent:
               'Disassociate contact {{contactId}} from company {{companyId}}',
             inputFieldLabels: {
-              objectInput: 'Object Input',
-              optionsInput: 'Options Input',
+              objectsInput: 'Object To Disassociate',
+              optionsInput: 'Only objects with this property',
             },
             inputFieldDescriptions: {
-              objectInput: 'Enter the object input value.',
+              objectsInput: 'Enter the object input value.',
               optionsInput: 'Choose an option for the input.',
             },
           },

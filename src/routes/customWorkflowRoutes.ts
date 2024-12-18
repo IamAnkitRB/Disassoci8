@@ -7,7 +7,7 @@ router.post(
   '/createCustomWorkflowAction',
   controllers.createCustomWorkflowAction,
 );
-router.patch(
+router.post(
   '/updateCustomWorkflowAction',
   controllers.updateCustomWorkflowAction,
 );
