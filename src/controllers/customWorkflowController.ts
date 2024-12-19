@@ -7,10 +7,17 @@ import {
 } from '../config';
 import logger from '../utils/logger';
 
+/**
+ * Creates a custom workflow action in HubSpot for disassociating objects.
+ * The workflow action allows users to define input fields and behaviors for the disassociation process.
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} - Sends a response with the creation result or an error message.
+ */
 export const createCustomWorkflowAction = async (
   req: Request,
   res: Response,
-) => {
+): Promise<void> => {
   try {
     const response = await axios.post(
       `https://api.hubapi.com/automation/v4/actions/${HUBSPOT_APP_ID}`,
@@ -103,12 +110,19 @@ export const createCustomWorkflowAction = async (
   }
 };
 
+/**
+ * Updates an existing custom workflow action in HubSpot.
+ * Modifies the action's input fields, labels, and other properties.
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} - Sends a response with the update result or an error message.
+ */
 export const updateCustomWorkflowAction = async (
   req: Request,
   res: Response,
-) => {
+): Promise<void> => {
   try {
-    const DEFINITION_ID = '179706797';
+    const DEFINITION_ID = req.body.definitionId;
     const response = await axios.patch(
       `https://api.hubapi.com/automation/v4/actions/${HUBSPOT_APP_ID}/${DEFINITION_ID}`,
       {
@@ -116,10 +130,20 @@ export const updateCustomWorkflowAction = async (
         inputFields: [
           {
             typeDefinition: {
-              name: 'objectsInput',
+              name: 'objectInput',
+              type: 'enumeration',
+              fieldType: 'select',
+              optionsUrl: `${API_BASE_URL}/hubspot/fetchObjects`,
+            },
+            supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: true,
+          },
+          {
+            typeDefinition: {
+              name: 'associationLabelInput',
               type: 'enumeration',
               fieldType: 'checkbox',
-              optionsUrl: `${API_BASE_URL}/hubspot/fetchObjects`,
+              optionsUrl: `${API_BASE_URL}/hubspot/fethcAssociationLabels`,
             },
             supportedValueTypes: ['STATIC_VALUE'],
             isRequired: true,
@@ -132,22 +156,37 @@ export const updateCustomWorkflowAction = async (
               optionsUrl: `${API_BASE_URL}/hubspot/fetchProps`,
             },
             supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: true,
+          },
+          {
+            typeDefinition: {
+              name: 'optionsValueInput',
+              type: 'string',
+              fieldType: 'text',
+            },
+            supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: false,
           },
         ],
         labels: {
           en: {
-            actionName: 'Disassociate Currenct Object from other',
+            actionName: 'Disassociate Objects',
             actionDescription:
-              'This action will disassociate a contact from a company.',
-            actionCardContent:
-              'Disassociate contact {{contactId}} from company {{companyId}}',
+              'This action will disassociate two objects. The source object is defined by the "Workflow Type"',
+            actionCardContent: 'Disassociate objects from one another',
             inputFieldLabels: {
-              objectsInput: 'Object To Disassociate',
+              objectInput: 'Object To Disassociate',
+              associationLabelInput: 'Association Label Input',
               optionsInput: 'Only objects with this property',
+              optionsValueInput: 'With the value of',
             },
             inputFieldDescriptions: {
-              objectsInput: 'Enter the object input value.',
-              optionsInput: 'Choose an option for the input.',
+              objectInput:
+                'Enter the object from which you want to disassociate',
+              associationLabelInput: 'Select association labels',
+              optionsInput:
+                'Disassociate only those objects which contains this property',
+              optionsValueInput: 'Value of property in the selected object',
             },
           },
         },

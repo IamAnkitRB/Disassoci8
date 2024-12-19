@@ -4,7 +4,13 @@ import logger from './logger';
 
 let userId = '9';
 
-export const fetchAllObjects = async () => {
+/**
+ * Fetch all custom and default objects from HubSpot, and format them with value and label properties.
+ * @returns {Promise<Array<{value: string, label: string}>>} - Array of objects with `value` and `label` fields for use in dropdowns or selection lists.
+ */
+export const fetchAllObjects = async (): Promise<
+  Array<{ value: string; label: string }>
+> => {
   try {
     const accessToken = await ensureValidAccessToken(userId);
     const customObjectsResponse: any = await axios.get(
@@ -35,7 +41,7 @@ export const fetchAllObjects = async () => {
 
     return objectsLabel;
   } catch (error: any) {
-    console.error(
+    logger.error(
       'Error fetching objects:',
       JSON.stringify(error.response?.data) || error.message,
     );
@@ -43,22 +49,33 @@ export const fetchAllObjects = async () => {
   }
 };
 
-export const fetchObjectProperties = async (objectType: string) => {
+/**
+ * Fetch all properties for a specified object type from HubSpot.
+ * @param {string} objectType - The type of the object (e.g., "contacts", "companies").
+ * @returns {Promise<any>} - Array of properties for the specified object type.
+ */
+export const fetchObjectProperties = async (
+  objectType: string,
+): Promise<any> => {
   try {
-    const accessToken = await ensureValidAccessToken(userId);
-    const response: any = await axios.get(
-      `https://api.hubapi.com/crm/v3/properties/${objectType}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
+    if (objectType) {
+      const accessToken = await ensureValidAccessToken(userId);
+      const response: any = await axios.get(
+        `https://api.hubapi.com/crm/v3/properties/${objectType}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
         },
-      },
-    );
+      );
 
-    return response.data.results;
+      return response.data.results;
+    } else {
+      return [];
+    }
   } catch (error: any) {
-    console.error(
+    logger.error(
       `Error fetching properties for ${objectType}:`,
       error.response?.data || error.message,
     );
@@ -66,12 +83,17 @@ export const fetchObjectProperties = async (objectType: string) => {
   }
 };
 
+/**
+ * Fetch association labels between two object types in HubSpot.
+ * @param {string} fromObjectType - The type of the first object (e.g., "contacts").
+ * @param {string} toObjectType - The type of the second object (e.g., "companies").
+ * @returns {Promise<any>} - Array of association labels for the two specified object types.
+ */
 export const fetchAssociationLabels = async (
   fromObjectType: string,
   toObjectType: string,
-) => {
+): Promise<any> => {
   try {
-    console.log('to object id::', toObjectType);
     if (!toObjectType) {
       return [];
     }
@@ -103,42 +125,48 @@ export const fetchAssociationLabels = async (
 export const disassociateTwobjects = async (
   fromObjectType: string,
   toObjectType: string,
-  associationTypeId: string,
+  associationTypeId: [string],
 ): Promise<boolean> => {
   try {
-    logger.info(
-      `Disassociating ${fromObjectType} from ${toObjectType} with association type ${associationTypeId}`,
-    );
+    const accessToken = await ensureValidAccessToken(userId);
 
-    if (!fromObjectType || !toObjectType || !associationTypeId) {
+    if (
+      !fromObjectType ||
+      !toObjectType ||
+      !associationTypeId ||
+      !associationTypeId.length
+    ) {
       throw new Error(
         'fromObjectType, toObjectType and associationTypeId all are required.',
       );
     }
 
-    const accessToken = await ensureValidAccessToken(userId);
-
-    const apiUrl = `https://api.hubapi.com/crm/v4/associations/${fromObjectType}/${toObjectType}/labels/${associationTypeId}`;
-
-    try {
-      logger.info(`Making request to disassociate objects`);
-
-      await axios.delete(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-    } catch (error: any) {
-      logger.error(
-        `Error while making API request to disassociate objects: ${error.stack}`,
+    for (let associationType of associationTypeId) {
+      logger.info(
+        `Disassociating ${fromObjectType} from ${toObjectType} with association type ${associationType}`,
       );
-      throw error;
+      const apiUrl = `https://api.hubapi.com/crm/v4/associations/${fromObjectType}/${toObjectType}/labels/${associationType}`;
+
+      try {
+        logger.info(`Making request to disassociate objects`);
+
+        await axios.delete(apiUrl, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      } catch (error: any) {
+        logger.error(
+          `Error while making API request to disassociate objects: ${error.stack}`,
+        );
+      }
+
+      logger.info(
+        `Successfully disassociated ${fromObjectType} from ${toObjectType} with association type ${associationType}`,
+      );
     }
 
-    logger.info(
-      `Successfully disassociated ${fromObjectType} from ${toObjectType} with association type ${associationTypeId}`,
-    );
     return true;
   } catch (error: any) {
     logger.error(`Error while disassociating objects: ${error.stack}`);

@@ -16,6 +16,13 @@ import { disassociateTwobjects } from '../utils/hubSpotUtils';
 
 const prisma = new PrismaClient();
 
+/**
+ * Handles the OAuth callback for HubSpot integration.
+ * Exchanges the authorization code for access and refresh tokens, then saves the tokens in the database.
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} - Sends a response to the client with success or error message.
+ */
 export const handleOAuthCallback = async (
   req: Request,
   res: Response,
@@ -69,6 +76,12 @@ export const handleOAuthCallback = async (
   }
 };
 
+/**
+ * Fetches all HubSpot objects, including default and custom objects.
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} - Sends a response with the list of objects.
+ */
 export const fetchObejcts = async (
   req: Request,
   res: Response,
@@ -89,12 +102,19 @@ export const fetchObejcts = async (
   }
 };
 
+/**
+ * Fetches properties of a specific HubSpot object type.
+ * @param {Request} req - Express request object.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} - Sends a response with the list of properties.
+ */
 export const fetchProperties = async (
   req: Request,
   res: Response,
 ): Promise<void> => {
   try {
-    const response = await fetchObjectProperties('2-22394367');
+    const objectType = req.body?.inputFields?.objectInput?.value;
+    const response = await fetchObjectProperties(objectType);
 
     const allObjectProperties: any = [];
     response.map((prop: any) => {
@@ -113,6 +133,12 @@ export const fetchProperties = async (
   }
 };
 
+/**
+ * Fetches association labels between two specified HubSpot object types.
+ * @param {Request} req - Express request object containing object type IDs in the body.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} - Sends a response with the association labels.
+ */
 export const fethcAssociationLabels = async (
   req: Request,
   res: Response,
@@ -143,6 +169,12 @@ export const fethcAssociationLabels = async (
   }
 };
 
+/**
+ * Disassociates two objects in HubSpot using their object types and association type IDs.
+ * @param {Request} req - Express request object containing necessary details in the body.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<void>} - Sends a response indicating success or failure of the operation.
+ */
 export const disassociateObjects = async (
   req: Request,
   res: Response,
