@@ -11,6 +11,7 @@ import {
   fetchAllObjects,
   fetchObjectProperties,
   fetchAssociationLabels,
+  listAllAssociatedObjects,
 } from '../utils/hubSpotUtils';
 import { disassociateTwobjects } from '../utils/hubSpotUtils';
 
@@ -201,10 +202,22 @@ export const disassociateObjects = async (
     const hubId = origin.portalId;
 
     const fromObjectType = object?.objectType;
+    const fromObjectId = object?.objectId;
     const toObjectType = inputFields?.objectInput;
     const associationTypeId = inputFields?.associationLabelInput;
     const withProperty = inputFields?.optionsInput;
     const withPropertyValue = inputFields?.optionsValueInput;
+
+    const toObjectIdList = await listAllAssociatedObjects(
+      fromObjectType,
+      fromObjectId,
+      toObjectType,
+      hubId,
+    );
+
+    const toObjectIdArray = toObjectIdList?.results?.map(
+      (item: any) => item.toObjectId,
+    );
 
     if (!fromObjectType || !toObjectType || !associationTypeId) {
       res.status(400).json({
@@ -216,7 +229,9 @@ export const disassociateObjects = async (
     const response = await disassociateTwobjects(
       hubId,
       fromObjectType,
+      fromObjectId,
       toObjectType,
+      toObjectIdArray,
       associationTypeId,
     );
 

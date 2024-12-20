@@ -125,7 +125,9 @@ export const fetchAssociationLabels = async (
 export const disassociateTwobjects = async (
   hubId: string,
   fromObjectType: string,
+  fromObjectId: string,
   toObjectType: string,
+  toObjectIdArray: string,
   associationTypeId: [string],
 ): Promise<boolean> => {
   try {
@@ -143,34 +145,72 @@ export const disassociateTwobjects = async (
     }
 
     for (let associationType of associationTypeId) {
-      logger.info(
-        `Disassociating ${fromObjectType} from ${toObjectType} with association type ${associationType}`,
-      );
-      const apiUrl = `https://api.hubapi.com/crm/v4/associations/${fromObjectType}/${toObjectType}/labels/${associationType}`;
+      for (let toObjectId of toObjectIdArray) {
+        logger.info(
+          `Disassociating ${fromObjectId} of ${fromObjectType} from ${toObjectId} of ${toObjectType} with association type ${associationType}`,
+        );
+        const apiUrl = `https://api.hubapi.com/crm/v4/objects/${fromObjectType}/${fromObjectId}/associations/${toObjectType}/${toObjectId}`;
 
-      try {
-        logger.info(`Making request to disassociate objects`);
+        try {
+          logger.info(`Making request to disassociate objects`);
 
-        await axios.delete(apiUrl, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-      } catch (error: any) {
-        logger.error(
-          `Error while making API request to disassociate objects: ${error.stack}`,
+          const response = await axios.delete(apiUrl, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          logger.info(
+            `Response status from disassociate api: ${response.status}`,
+          );
+        } catch (error: any) {
+          logger.error(
+            `Error while making API request to disassociate objects: ${error.stack}`,
+          );
+        }
+
+        logger.info(
+          `Successfully disassociated ${fromObjectType} from ${toObjectType} with association type ${associationType}`,
         );
       }
-
-      logger.info(
-        `Successfully disassociated ${fromObjectType} from ${toObjectType} with association type ${associationType}`,
-      );
     }
 
     return true;
   } catch (error: any) {
     logger.error(`Error while disassociating objects: ${error.stack}`);
+    throw error;
+  }
+};
+
+export const listAllAssociatedObjects = async (
+  objectType: string,
+  objectId: string,
+  toObjectType: string,
+  hubId: string,
+) => {
+  const accessToken = await ensureValidAccessToken(hubId);
+  const url = `https://api.hubapi.com/crm/v4/objects/${objectType}/${objectId}/associations/${toObjectType}?limit=500`;
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to fetch associated objects. Status: ${response.status}. Message: ${errorText}`,
+      );
+    }
+
+    const data = await response.json();
+    return data; // Return the retrieved data for further processing
+  } catch (error: any) {
+    logger.error(`Error while listing all associated objects: ${error.stack}`);
     throw error;
   }
 };
