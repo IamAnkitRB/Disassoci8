@@ -2,17 +2,15 @@ import axios from 'axios';
 import { ensureValidAccessToken } from '../services/refreshTokenService';
 import logger from './logger';
 
-let userId = '9';
-
 /**
  * Fetch all custom and default objects from HubSpot, and format them with value and label properties.
  * @returns {Promise<Array<{value: string, label: string}>>} - Array of objects with `value` and `label` fields for use in dropdowns or selection lists.
  */
-export const fetchAllObjects = async (): Promise<
-  Array<{ value: string; label: string }>
-> => {
+export const fetchAllObjects = async (
+  hubId: string,
+): Promise<Array<{ value: string; label: string }>> => {
   try {
-    const accessToken = await ensureValidAccessToken(userId);
+    const accessToken = await ensureValidAccessToken(hubId);
     const customObjectsResponse: any = await axios.get(
       'https://api.hubapi.com/crm/v3/schemas',
       {
@@ -55,11 +53,12 @@ export const fetchAllObjects = async (): Promise<
  * @returns {Promise<any>} - Array of properties for the specified object type.
  */
 export const fetchObjectProperties = async (
+  hubId: string,
   objectType: string,
 ): Promise<any> => {
   try {
     if (objectType) {
-      const accessToken = await ensureValidAccessToken(userId);
+      const accessToken = await ensureValidAccessToken(hubId);
       const response: any = await axios.get(
         `https://api.hubapi.com/crm/v3/properties/${objectType}`,
         {
@@ -90,6 +89,7 @@ export const fetchObjectProperties = async (
  * @returns {Promise<any>} - Array of association labels for the two specified object types.
  */
 export const fetchAssociationLabels = async (
+  hubId: string,
   fromObjectType: string,
   toObjectType: string,
 ): Promise<any> => {
@@ -98,7 +98,7 @@ export const fetchAssociationLabels = async (
       return [];
     }
 
-    const accessToken = await ensureValidAccessToken(userId);
+    const accessToken = await ensureValidAccessToken(hubId);
     const response: any = await axios.get(
       `https://api.hubapi.com/crm/v4/associations/${fromObjectType}/${toObjectType}/labels`,
       {
@@ -123,12 +123,13 @@ export const fetchAssociationLabels = async (
  * @returns {Promise<boolean>} - Returns true if disassociation is successful, otherwise throws an error.
  */
 export const disassociateTwobjects = async (
+  hubId: string,
   fromObjectType: string,
   toObjectType: string,
   associationTypeId: [string],
 ): Promise<boolean> => {
   try {
-    const accessToken = await ensureValidAccessToken(userId);
+    const accessToken = await ensureValidAccessToken(hubId);
 
     if (
       !fromObjectType ||

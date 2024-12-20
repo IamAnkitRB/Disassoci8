@@ -8,10 +8,13 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now())
+  user         String
+  userId       String
+  appId        String
+  hubId        String   @id
   accessToken  String
   refreshToken String
   expireTime   DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
 }

@@ -61,31 +61,32 @@ export const createCustomWorkflowAction = async (
               fieldType: 'text',
             },
             supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: false,
           },
         ],
         labels: {
           en: {
-            actionName: 'Disassociate Company and Contact',
+            actionName: 'Disassociate Objects',
             actionDescription:
-              'This action will disassociate a contact from a company.',
-            actionCardContent:
-              'Disassociate contact {{contactId}} from company {{companyId}}',
+              'This action will disassociate two objects. The source object is defined by the "Workflow Type"',
+            actionCardContent: 'Disassociate objects from one another',
             inputFieldLabels: {
               objectInput: 'Object To Disassociate',
               associationLabelInput: 'Association Label Input',
               optionsInput: 'Only objects with this property',
-              optionsValueInput: 'Option Input Value',
+              optionsValueInput: 'With the value of',
             },
             inputFieldDescriptions: {
-              objectInput: 'Enter the object input value',
+              objectInput:
+                'Enter the object from which you want to disassociate',
               associationLabelInput: 'Select association labels',
-              optionsInput: 'Choose an option for the input',
-              optionsValueInput: 'With the value of',
+              optionsInput:
+                'Disassociate only those objects which contains this property',
+              optionsValueInput: 'Value of property in the selected object',
             },
           },
         },
         published: 'true',
-        objectTypes: ['CONTACT', 'COMPANY'],
       },
       {
         headers: {
@@ -191,7 +192,6 @@ export const updateCustomWorkflowAction = async (
           },
         },
         published: 'true',
-        objectTypes: ['CONTACT', 'COMPANY'],
       },
       {
         headers: {

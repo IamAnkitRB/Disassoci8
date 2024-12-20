@@ -51,11 +51,21 @@ export const handleOAuthCallback = async (
     const refreshToken = tokenResponse.data.refresh_token;
     const expiresIn = tokenResponse.data.expires_in;
 
+    const tokenMetaDataResponse: any = await axios.get(
+      `https://api.hubapi.com/oauth/v1/access-tokens/${accessToken}`,
+    );
+
+    const userData = tokenMetaDataResponse.data;
+
     const expireTime = new Date();
     expireTime.setSeconds(expireTime.getSeconds() + expiresIn);
 
     const newUser = await prisma.user.create({
       data: {
+        user: userData.user,
+        userId: userData.user_id.toString(),
+        appId: userData.app_id.toString(),
+        hubId: userData.hub_id.toString(),
         accessToken: accessToken,
         refreshToken: refreshToken,
         expireTime: expireTime,
@@ -68,10 +78,7 @@ export const handleOAuthCallback = async (
       data: newUser,
     });
   } catch (error: any) {
-    logger.error(
-      'Error exchanging token:',
-      error.response?.data || error.message,
-    );
+    logger.error(`Error exchanging token: ${error.message}`);
     res.status(500).send('Error during OAuth process');
   }
 };
@@ -87,7 +94,9 @@ export const fetchObejcts = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const response = await fetchAllObjects();
+    const { origin } = req.body;
+    const hubId = origin.portalId;
+    const response = await fetchAllObjects(hubId);
 
     res.status(200).json({
       success: true,
@@ -113,8 +122,10 @@ export const fetchProperties = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const { origin } = req.body;
+    const hubId = origin.portalId;
     const objectType = req.body?.inputFields?.objectInput?.value;
-    const response = await fetchObjectProperties(objectType);
+    const response = await fetchObjectProperties(hubId, objectType);
 
     const allObjectProperties: any = [];
     response.map((prop: any) => {
@@ -144,10 +155,16 @@ export const fethcAssociationLabels = async (
   res: Response,
 ): Promise<void> => {
   try {
+    const { origin } = req.body;
+    const hubId = origin.portalId;
     const fromObjectType: string = req.body?.objectTypeId;
     const toObjectType: string =
       req.body?.fields?.objectInput?.fieldValue?.value;
-    const response = await fetchAssociationLabels(fromObjectType, toObjectType);
+    const response = await fetchAssociationLabels(
+      hubId,
+      fromObjectType,
+      toObjectType,
+    );
 
     const associationLabels = response.map((item: any) => {
       return {
@@ -180,7 +197,8 @@ export const disassociateObjects = async (
   res: Response,
 ): Promise<void> => {
   try {
-    const { object, inputFields } = req.body;
+    const { origin, object, inputFields } = req.body;
+    const hubId = origin.portalId;
 
     const fromObjectType = object?.objectType;
     const toObjectType = inputFields?.objectInput;
@@ -196,6 +214,7 @@ export const disassociateObjects = async (
     }
 
     const response = await disassociateTwobjects(
+      hubId,
       fromObjectType,
       toObjectType,
       associationTypeId,

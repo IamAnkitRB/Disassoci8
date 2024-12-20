@@ -10,15 +10,15 @@ const prisma = new PrismaClient();
  */
 
 export const ensureValidAccessToken = async (
-  userId: string,
+  hubId: string,
 ): Promise<string> => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(userId) },
+      where: { hubId: hubId.toString() },
     });
 
     if (!user) {
-      throw new Error(`User with ID ${userId} not found`);
+      throw new Error(`User with hubId ${hubId} not found`);
     }
 
     const { accessToken, refreshToken, expireTime } = user;
@@ -27,7 +27,7 @@ export const ensureValidAccessToken = async (
     const currentTime = new Date();
     if (expireTime <= currentTime) {
       logger.info(
-        `Access token expired for user ${userId}. Refreshing token...`,
+        `Access token expired for user with hubId ${hubId}. Refreshing token...`,
       );
 
       // Refresh the token
@@ -53,7 +53,7 @@ export const ensureValidAccessToken = async (
 
       // Update the database
       await prisma.user.update({
-        where: { id: parseInt(userId) },
+        where: { hubId: hubId.toString() },
         data: {
           accessToken: newAccessToken,
           refreshToken: newRefreshToken,
@@ -61,15 +61,15 @@ export const ensureValidAccessToken = async (
         },
       });
 
-      logger.info(`Access token refreshed for user ${userId}`);
+      logger.info(`Access token refreshed for user with hubId ${hubId}`);
       return newAccessToken;
     }
 
-    logger.info(`Access token is valid for user ${userId}`);
+    logger.info(`Access token is valid for user with hubId ${hubId}`);
     return accessToken;
   } catch (error: any) {
     logger.error(
-      `Error ensuring valid access token for user ${userId}: ${error.response?.data} || ${error.message}`,
+      `Error ensuring valid access token for user with hubId ${hubId}: ${error.message}`,
     );
     throw error;
   }
