@@ -4,6 +4,7 @@ import logger from './logger';
 
 /**
  * Fetch all custom and default objects from HubSpot, and format them with value and label properties.
+ * @param {string} hubId - The hubId of the user making request
  * @returns {Promise<Array<{value: string, label: string}>>} - Array of objects with `value` and `label` fields for use in dropdowns or selection lists.
  */
 export const fetchAllObjects = async (
@@ -49,6 +50,7 @@ export const fetchAllObjects = async (
 
 /**
  * Fetch all properties for a specified object type from HubSpot.
+ * @param {string} hubId - The hubId of the user making request
  * @param {string} objectType - The type of the object (e.g., "contacts", "companies").
  * @returns {Promise<any>} - Array of properties for the specified object type.
  */
@@ -84,6 +86,7 @@ export const fetchObjectProperties = async (
 
 /**
  * Fetch association labels between two object types in HubSpot.
+ * @param {string} hubId - The hubId of the user making request
  * @param {string} fromObjectType - The type of the first object (e.g., "contacts").
  * @param {string} toObjectType - The type of the second object (e.g., "companies").
  * @returns {Promise<any>} - Array of association labels for the two specified object types.
@@ -117,9 +120,12 @@ export const fetchAssociationLabels = async (
 
 /**
  * Disassociate two objects in HubSpot.
+ * @param {string} hubId - The hubId of the user making request
  * @param {string} fromObjectType - The type of the first object (e.g., "contacts").
+ * @param {string} fromObjectId - The object id of first object
  * @param {string} toObjectType - The type of the second object (e.g., "companies").
- * @param {string} associationTypeId - The association type ID
+ * @param {[string]} toObjectIdArray - Array of all the associated record IDs of the second object
+ * @param {string} associationTypeId - Array of the association type ID
  * @returns {Promise<boolean>} - Returns true if disassociation is successful, otherwise throws an error.
  */
 export const disassociateTwobjects = async (
@@ -135,6 +141,7 @@ export const disassociateTwobjects = async (
 
     if (
       !fromObjectType ||
+      !fromObjectId ||
       !toObjectType ||
       !associationTypeId ||
       !associationTypeId.length
@@ -142,6 +149,11 @@ export const disassociateTwobjects = async (
       throw new Error(
         'fromObjectType, toObjectType and associationTypeId all are required.',
       );
+    }
+
+    if (!toObjectIdArray || !toObjectIdArray.length) {
+      logger.info(`No Object found to disassociate`);
+      return true;
     }
 
     for (let associationType of associationTypeId) {
@@ -182,12 +194,20 @@ export const disassociateTwobjects = async (
   }
 };
 
+/**
+ * List all the associated records from source objects.
+ * @param {string} hubId - The hubId of the user making request
+ * @param {string} objectType - The type of the first object (e.g., "contacts").
+ * @param {string} objectId - The object id of first object
+ * @param {string} toObjectType - The type of the second object (e.g., "companies").
+ * @returns {Promise<void>} - Returns list of all the associated records from source objects.
+ */
 export const listAllAssociatedObjects = async (
+  hubId: string,
   objectType: string,
   objectId: string,
   toObjectType: string,
-  hubId: string,
-) => {
+): Promise<void> => {
   const accessToken = await ensureValidAccessToken(hubId);
   const url = `https://api.hubapi.com/crm/v4/objects/${objectType}/${objectId}/associations/${toObjectType}?limit=500`;
 
@@ -208,7 +228,7 @@ export const listAllAssociatedObjects = async (
     }
 
     const data = await response.json();
-    return data; // Return the retrieved data for further processing
+    return data;
   } catch (error: any) {
     logger.error(`Error while listing all associated objects: ${error.stack}`);
     throw error;

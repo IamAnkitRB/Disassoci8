@@ -208,11 +208,11 @@ export const disassociateObjects = async (
     const withProperty = inputFields?.optionsInput;
     const withPropertyValue = inputFields?.optionsValueInput;
 
-    const toObjectIdList = await listAllAssociatedObjects(
+    const toObjectIdList: any = await listAllAssociatedObjects(
+      hubId,
       fromObjectType,
       fromObjectId,
       toObjectType,
-      hubId,
     );
 
     const toObjectIdArray = toObjectIdList?.results?.map(
