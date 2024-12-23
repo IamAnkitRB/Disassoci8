@@ -12,8 +12,9 @@ import {
   fetchObjectProperties,
   fetchAssociationLabels,
   listAllAssociatedObjects,
+  fetchObjectDetailsWithId,
+  disassociateTwoObjects,
 } from '../utils/hubSpotUtils';
-import { disassociateTwobjects } from '../utils/hubSpotUtils';
 
 const prisma = new PrismaClient();
 
@@ -22,12 +23,12 @@ const prisma = new PrismaClient();
  * Exchanges the authorization code for access and refresh tokens, then saves the tokens in the database.
  * @param {Request} req - Express request object.
  * @param {Response} res - Express response object.
- * @returns {Promise<void>} - Sends a response to the client with success or error message.
+ * @returns {Promise<any>} - Sends a response to the client with success or error message.
  */
 export const handleOAuthCallback = async (
   req: Request,
   res: Response,
-): Promise<void> => {
+): Promise<any> => {
   const { code } = req.query;
 
   if (!code) {
@@ -73,14 +74,14 @@ export const handleOAuthCallback = async (
       },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: 'Authorization successful',
       data: newUser,
     });
   } catch (error: any) {
     logger.error(`Error exchanging token: ${error.message}`);
-    res.status(500).send('Error during OAuth process');
+    return res.status(500).send('Error during OAuth process');
   }
 };
 
@@ -88,24 +89,24 @@ export const handleOAuthCallback = async (
  * Fetches all HubSpot objects, including default and custom objects.
  * @param {Request} req - Express request object.
  * @param {Response} res - Express response object.
- * @returns {Promise<void>} - Sends a response with the list of objects.
+ * @returns {Promise<any>} - Sends a response with the list of objects.
  */
 export const fetchObejcts = async (
   req: Request,
   res: Response,
-): Promise<void> => {
+): Promise<any> => {
   try {
     const { origin } = req.body;
     const hubId = origin.portalId;
     const response = await fetchAllObjects(hubId);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       options: response,
     });
   } catch (error: any) {
     logger.error(`Error while fetching Objects: ${error.stack}`);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
     });
@@ -116,12 +117,12 @@ export const fetchObejcts = async (
  * Fetches properties of a specific HubSpot object type.
  * @param {Request} req - Express request object.
  * @param {Response} res - Express response object.
- * @returns {Promise<void>} - Sends a response with the list of properties.
+ * @returns {Promise<any>} - Sends a response with the list of properties.
  */
 export const fetchProperties = async (
   req: Request,
   res: Response,
-): Promise<void> => {
+): Promise<any> => {
   try {
     const { origin } = req.body;
     const hubId = origin.portalId;
@@ -133,12 +134,12 @@ export const fetchProperties = async (
       allObjectProperties.push({ value: prop.label, label: prop.label });
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       options: allObjectProperties,
     });
   } catch (error: any) {
     logger.error(`Error while fetching properties: ${error.stack}`);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
     });
@@ -149,12 +150,12 @@ export const fetchProperties = async (
  * Fetches association labels between two specified HubSpot object types.
  * @param {Request} req - Express request object containing object type IDs in the body.
  * @param {Response} res - Express response object.
- * @returns {Promise<void>} - Sends a response with the association labels.
+ * @returns {Promise<any>} - Sends a response with the association labels.
  */
 export const fethcAssociationLabels = async (
   req: Request,
   res: Response,
-): Promise<void> => {
+): Promise<any> => {
   try {
     const { origin } = req.body;
     const hubId = origin.portalId;
@@ -174,13 +175,13 @@ export const fethcAssociationLabels = async (
       };
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       options: associationLabels,
     });
   } catch (error: any) {
     logger.error(`Error while fetching association labels: ${error.stack}`);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
     });
@@ -191,12 +192,12 @@ export const fethcAssociationLabels = async (
  * Disassociates two objects in HubSpot using their object types and association type IDs.
  * @param {Request} req - Express request object containing necessary details in the body.
  * @param {Response} res - Express response object.
- * @returns {Promise<void>} - Sends a response indicating success or failure of the operation.
+ * @returns {Promise<any>} - Sends a response indicating success or failure of the operation.
  */
 export const disassociateObjects = async (
   req: Request,
   res: Response,
-): Promise<void> => {
+): Promise<any> => {
   try {
     const { origin, object, inputFields } = req.body;
     const hubId = origin.portalId;
@@ -226,7 +227,7 @@ export const disassociateObjects = async (
       });
     }
 
-    const response = await disassociateTwobjects(
+    const response = await disassociateTwoObjects(
       hubId,
       fromObjectType,
       fromObjectId,
@@ -236,19 +237,201 @@ export const disassociateObjects = async (
     );
 
     if (response) {
-      res.status(200).send({
+      return res.status(200).send({
         success: true,
         message: 'Objects Disassociated Successfully',
       });
     } else {
-      res.status(400).send({
+      return res.status(400).send({
         success: false,
         message: 'Error While Disassociating Objects',
       });
     }
   } catch (error: any) {
     logger.error(`Error while disassociating objects: ${error.stack}`);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+};
+
+export const fetchOptions = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { origin, inputFields } = req.body;
+    const hubId = origin.portalId;
+    const fromObjectType: string = req.body?.objectTypeId;
+    const toObjectType = req.body?.inputFields?.objectInput?.value;
+
+    const { selectionInput } = inputFields;
+
+    let optionResponse: any = [];
+
+    if (selectionInput?.value === 'property') {
+      const response = await fetchObjectProperties(hubId, toObjectType);
+
+      response.map((prop: any) => {
+        optionResponse.push({ value: prop.label, label: prop.label });
+      });
+    } else if (selectionInput?.value === 'associationLabel') {
+      const response = await fetchAssociationLabels(
+        hubId,
+        fromObjectType,
+        toObjectType,
+      );
+
+      optionResponse = response.map((item: any) => {
+        return {
+          label: item?.label ? item.label : 'Unlabeled',
+          value: item.typeId,
+        };
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      options: optionResponse,
+    });
+  } catch (error: any) {
+    logger.error(`Error while fetching options: ${error.stack}`);
     res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+};
+
+export const disassociateObjectsviaProp = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { origin, object, inputFields } = req.body;
+    const hubId = origin.portalId;
+
+    const fromObjectType = object?.objectType;
+    const fromObjectId = object?.objectId;
+    const toObjectType = inputFields?.objectInput;
+    const associationTypeId = inputFields?.associationLabelInput;
+
+    const toObjectIdList: any = await listAllAssociatedObjects(
+      hubId,
+      fromObjectType,
+      fromObjectId,
+      toObjectType,
+    );
+
+    const toObjectIdArray = toObjectIdList?.results?.map(
+      (item: any) => item.toObjectId,
+    );
+
+    if (!fromObjectType || !toObjectType || !associationTypeId) {
+      res.status(400).json({
+        success: false,
+        message: 'Missing required fields for disassociation.',
+      });
+    }
+
+    const response = await disassociateTwoObjects(
+      hubId,
+      fromObjectType,
+      fromObjectId,
+      toObjectType,
+      toObjectIdArray,
+      associationTypeId,
+    );
+
+    if (response) {
+      return res.status(200).send({
+        success: true,
+        message: 'Objects Disassociated Successfully',
+      });
+    } else {
+      return res.status(400).send({
+        success: false,
+        message: 'Error While Disassociating Objects',
+      });
+    }
+  } catch (error: any) {
+    logger.error(`Error while disassociating objects: ${error.stack}`);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+};
+
+export const disassociateObjectsViaPropV2 = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const { origin, object, inputFields } = req.body;
+    const hubId: string = origin.portalId;
+
+    const fromObjectType: string = object?.objectType;
+    const fromObjectId: string = object?.objectId;
+    const toObjectType: string = inputFields?.objectInput;
+    const optionsInput: string = inputFields?.optionsInput;
+    const optionValue: string = inputFields?.optionValue;
+    const associationTypeId: [string] = inputFields?.associationLabelInput;
+
+    const toObjectIdList: any = await listAllAssociatedObjects(
+      hubId,
+      fromObjectType,
+      fromObjectId,
+      toObjectType,
+    );
+
+    const toObjectIdArray = toObjectIdList?.results?.map(
+      (item: any) => item.toObjectId,
+    );
+
+    for (const toObjectId of toObjectIdArray) {
+      const toObjectProps = await fetchObjectDetailsWithId(
+        hubId,
+        toObjectType,
+        toObjectId,
+      );
+
+      const propertyValue =
+        toObjectProps?.properties?.[optionsInput.toLowerCase()];
+
+      console.log(
+        `Checking object ID ${toObjectId} with property ${optionsInput}: ${propertyValue}`,
+      );
+
+      // Only disassociate if the property value matches
+      if (propertyValue === optionValue) {
+        console.log(
+          `Disassociating object ID ${toObjectId} as it matches the condition.`,
+        );
+
+        await disassociateTwoObjects(
+          hubId,
+          fromObjectType,
+          fromObjectId,
+          toObjectType,
+          toObjectId,
+          associationTypeId,
+        );
+      } else {
+        console.log(
+          `Skipping object ID ${toObjectId} as it does not match the condition.`,
+        );
+      }
+    }
+
+    return res.status(200).send({
+      success: true,
+      message: 'Objects Disassociated Successfully',
+    });
+  } catch (error: any) {
+    logger.error(`Error while disassociating objects: ${error.stack}`);
+    return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
     });

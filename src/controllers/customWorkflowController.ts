@@ -12,12 +12,12 @@ import logger from '../utils/logger';
  * The workflow action allows users to define input fields and behaviors for the disassociation process.
  * @param {Request} req - Express request object.
  * @param {Response} res - Express response object.
- * @returns {Promise<void>} - Sends a response with the creation result or an error message.
+ * @returns {Promise<any>} - Sends a response with the creation result or an error message.
  */
 export const createCustomWorkflowAction = async (
   req: Request,
   res: Response,
-): Promise<void> => {
+): Promise<any> => {
   try {
     const response = await axios.post(
       `https://api.hubapi.com/automation/v4/actions/${HUBSPOT_APP_ID}`,
@@ -52,7 +52,7 @@ export const createCustomWorkflowAction = async (
               optionsUrl: `${API_BASE_URL}/hubspot/fetchProps`,
             },
             supportedValueTypes: ['STATIC_VALUE'],
-            isRequired: true,
+            isRequired: false,
           },
           {
             typeDefinition: {
@@ -66,7 +66,7 @@ export const createCustomWorkflowAction = async (
         ],
         labels: {
           en: {
-            actionName: 'Disassociate Objects',
+            actionName: 'Disassociate Objects 2.0',
             actionDescription:
               'This action will disassociate two objects. The source object is defined by the "Workflow Type"',
             actionCardContent: 'Disassociate objects from one another',
@@ -98,13 +98,13 @@ export const createCustomWorkflowAction = async (
       },
     );
 
-    res.status(200).json(response.data);
+    return res.status(200).json(response.data);
   } catch (error: any) {
     logger.error(
       `Error while creating custom workflow action:
       ${error.response?.data || error.message}`,
     );
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to process the request.',
       details: error.response?.data || error.message,
     });
@@ -116,12 +116,12 @@ export const createCustomWorkflowAction = async (
  * Modifies the action's input fields, labels, and other properties.
  * @param {Request} req - Express request object.
  * @param {Response} res - Express response object.
- * @returns {Promise<void>} - Sends a response with the update result or an error message.
+ * @returns {Promise<any>} - Sends a response with the update result or an error message.
  */
 export const updateCustomWorkflowAction = async (
   req: Request,
   res: Response,
-): Promise<void> => {
+): Promise<any> => {
   try {
     const DEFINITION_ID = req.body.definitionId;
     const response = await axios.patch(
@@ -141,10 +141,19 @@ export const updateCustomWorkflowAction = async (
           },
           {
             typeDefinition: {
-              name: 'associationLabelInput',
+              name: 'selectionInput',
               type: 'enumeration',
-              fieldType: 'checkbox',
-              optionsUrl: `${API_BASE_URL}/hubspot/fethcAssociationLabels`,
+              fieldType: 'select',
+              options: [
+                {
+                  value: 'associationLabel',
+                  label: 'Association Label',
+                },
+                {
+                  value: 'property',
+                  label: 'Property',
+                },
+              ],
             },
             supportedValueTypes: ['STATIC_VALUE'],
             isRequired: true,
@@ -153,41 +162,31 @@ export const updateCustomWorkflowAction = async (
             typeDefinition: {
               name: 'optionsInput',
               type: 'enumeration',
-              fieldType: 'select',
-              optionsUrl: `${API_BASE_URL}/hubspot/fetchProps`,
+              fieldType: 'checkbox',
+              optionsUrl: `${API_BASE_URL}/hubspot/fetchOptions`,
             },
             supportedValueTypes: ['STATIC_VALUE'],
             isRequired: true,
           },
-          {
-            typeDefinition: {
-              name: 'optionsValueInput',
-              type: 'string',
-              fieldType: 'text',
-            },
-            supportedValueTypes: ['STATIC_VALUE'],
-            isRequired: false,
-          },
         ],
         labels: {
           en: {
-            actionName: 'Disassociate Objects',
+            actionName: 'Disassociate Objects 2.0',
             actionDescription:
               'This action will disassociate two objects. The source object is defined by the "Workflow Type"',
             actionCardContent: 'Disassociate objects from one another',
             inputFieldLabels: {
               objectInput: 'Object To Disassociate',
-              associationLabelInput: 'Association Label Input',
-              optionsInput: 'Only objects with this property',
-              optionsValueInput: 'With the value of',
+              selectionInput: 'Disassociate on the basis of',
+              optionsInput: 'Select property/association label',
             },
             inputFieldDescriptions: {
               objectInput:
                 'Enter the object from which you want to disassociate',
-              associationLabelInput: 'Select association labels',
+              selectionInput:
+                'The basis of disassociation i.e. Properties or Association Label',
               optionsInput:
-                'Disassociate only those objects which contains this property',
-              optionsValueInput: 'Value of property in the selected object',
+                'The property or association label via which you want to disassociate the objects',
             },
           },
         },
@@ -203,13 +202,109 @@ export const updateCustomWorkflowAction = async (
       },
     );
 
-    res.status(200).json(response.data);
+    return res.status(200).json(response.data);
   } catch (error: any) {
     logger.error(
       `Error while updating custom workflow action:
       ${error.response?.data || error.message}`,
     );
-    res.status(500).json({
+    return res.status(500).json({
+      error: 'Failed to process the request.',
+      details: error.response?.data || error.message,
+    });
+  }
+};
+
+export const createCustomWorkflowActionV2 = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  try {
+    const response = await axios.post(
+      `https://api.hubapi.com/automation/v4/actions/${HUBSPOT_APP_ID}`,
+      {
+        actionUrl: `${API_BASE_URL}/hubspot/disassociate`,
+        inputFields: [
+          {
+            typeDefinition: {
+              name: 'objectInput',
+              type: 'enumeration',
+              fieldType: 'select',
+              optionsUrl: `${API_BASE_URL}/hubspot/fetchObjects`,
+            },
+            supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: true,
+          },
+          {
+            typeDefinition: {
+              name: 'selectionInput',
+              type: 'enumeration',
+              fieldType: 'select',
+              options: [
+                {
+                  value: 'associationLabel',
+                  label: 'Association Label',
+                },
+                {
+                  value: 'property',
+                  label: 'Property',
+                },
+              ],
+            },
+            supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: true,
+          },
+          {
+            typeDefinition: {
+              name: 'optionsInput',
+              type: 'enumeration',
+              fieldType: 'checkbox',
+              optionsUrl: `${API_BASE_URL}/hubspot/fetchOptions`,
+            },
+            supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: true,
+          },
+        ],
+        labels: {
+          en: {
+            actionName: 'Disassociate Objects 2.0',
+            actionDescription:
+              'This action will disassociate two objects. The source object is defined by the "Workflow Type"',
+            actionCardContent: 'Disassociate objects from one another',
+            inputFieldLabels: {
+              objectInput: 'Object To Disassociate',
+              selectionInput: 'Disassociate on the basis of',
+              optionsInput: 'Select property/association label',
+            },
+            inputFieldDescriptions: {
+              objectInput:
+                'Enter the object from which you want to disassociate',
+              selectionInput:
+                'The basis of disassociation i.e. Properties or Association Label',
+              optionsInput:
+                'The property or association label via which you want to disassociate the objects',
+            },
+          },
+        },
+        published: 'true',
+      },
+      {
+        headers: {
+          'content-type': 'application/json',
+        },
+        params: {
+          hapikey: HUBSPOT_DEVELOPER_API_KEY,
+        },
+      },
+    );
+
+    return res.status(200).json(response.data);
+  } catch (error: any) {
+    logger.error(
+      `Error while creating custom workflow action:
+      ${error.response?.data || error.message}`,
+    );
+    return res.status(500).json({
       error: 'Failed to process the request.',
       details: error.response?.data || error.message,
     });

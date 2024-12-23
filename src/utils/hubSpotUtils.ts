@@ -128,12 +128,12 @@ export const fetchAssociationLabels = async (
  * @param {string} associationTypeId - Array of the association type ID
  * @returns {Promise<boolean>} - Returns true if disassociation is successful, otherwise throws an error.
  */
-export const disassociateTwobjects = async (
+export const disassociateTwoObjects = async (
   hubId: string,
   fromObjectType: string,
   fromObjectId: string,
   toObjectType: string,
-  toObjectIdArray: string,
+  toObjectId: string,
   associationTypeId: [string],
 ): Promise<boolean> => {
   try {
@@ -151,40 +151,33 @@ export const disassociateTwobjects = async (
       );
     }
 
-    if (!toObjectIdArray || !toObjectIdArray.length) {
-      logger.info(`No Object found to disassociate`);
-      return true;
-    }
-
     for (let associationType of associationTypeId) {
-      for (let toObjectId of toObjectIdArray) {
+      logger.info(
+        `Disassociating ${fromObjectId} of ${fromObjectType} from ${toObjectId} of ${toObjectType} with association type ${associationType}`,
+      );
+      const apiUrl = `https://api.hubapi.com/crm/v4/objects/${fromObjectType}/${fromObjectId}/associations/${toObjectType}/${toObjectId}`;
+
+      try {
+        logger.info(`Making request to disassociate objects`);
+
+        const response = await axios.delete(apiUrl, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
         logger.info(
-          `Disassociating ${fromObjectId} of ${fromObjectType} from ${toObjectId} of ${toObjectType} with association type ${associationType}`,
+          `Response status from disassociate api: ${response.status}`,
         );
-        const apiUrl = `https://api.hubapi.com/crm/v4/objects/${fromObjectType}/${fromObjectId}/associations/${toObjectType}/${toObjectId}`;
-
-        try {
-          logger.info(`Making request to disassociate objects`);
-
-          const response = await axios.delete(apiUrl, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              'Content-Type': 'application/json',
-            },
-          });
-          logger.info(
-            `Response status from disassociate api: ${response.status}`,
-          );
-        } catch (error: any) {
-          logger.error(
-            `Error while making API request to disassociate objects: ${error.stack}`,
-          );
-        }
-
-        logger.info(
-          `Successfully disassociated ${fromObjectType} from ${toObjectType} with association type ${associationType}`,
+      } catch (error: any) {
+        logger.error(
+          `Error while making API request to disassociate objects: ${error.stack}`,
         );
       }
+
+      logger.info(
+        `Successfully disassociated ${fromObjectType} from ${toObjectType} with association type ${associationType}`,
+      );
     }
 
     return true;
@@ -212,25 +205,46 @@ export const listAllAssociatedObjects = async (
   const url = `https://api.hubapi.com/crm/v4/objects/${objectType}/${objectId}/associations/${toObjectType}?limit=500`;
 
   try {
-    const response = await fetch(url, {
-      method: 'GET',
+    const response: any = await axios.get(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
+    if (!response) {
       throw new Error(
-        `Failed to fetch associated objects. Status: ${response.status}. Message: ${errorText}`,
+        `Failed to fetch associated objects. Status: ${response.status}`,
       );
     }
 
-    const data = await response.json();
+    const data = await response.data;
     return data;
   } catch (error: any) {
     logger.error(`Error while listing all associated objects: ${error.stack}`);
+    throw error;
+  }
+};
+
+export const fetchObjectDetailsWithId = async (
+  hubId: string,
+  objectType: string,
+  objectId: string,
+): Promise<any> => {
+  try {
+    const accessToken = await ensureValidAccessToken(hubId);
+    const url = `https://api.hubapi.com/crm/v3/objects/${objectType}/${objectId}?archived=false`;
+
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    logger.error(`Error while fetching object details: ${error.stack}`);
     throw error;
   }
 };
