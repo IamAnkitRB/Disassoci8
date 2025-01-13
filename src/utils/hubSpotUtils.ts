@@ -124,7 +124,6 @@ export const fetchAssociationLabels = async (
  * @param {string} fromObjectType - The type of the first object (e.g., "contacts").
  * @param {string} fromObjectId - The object id of first object
  * @param {string} toObjectType - The type of the second object (e.g., "companies").
- * @param {[string]} toObjectIdArray - Array of all the associated record IDs of the second object
  * @param {string} associationTypeId - Array of the association type ID
  * @returns {Promise<boolean>} - Returns true if disassociation is successful, otherwise throws an error.
  */

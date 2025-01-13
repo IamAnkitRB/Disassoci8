@@ -1,0 +1,37 @@
+name: Build and Deploy on Ubuntu Instance
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20.x
+
+      # Step 3: SSH into the Ubuntu instance and build the project
+      - name: SSH and Build
+        uses: appleboy/ssh-action@v0.1.9
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            echo "Updating repository on the instance..."
+            git pull origin main
+            echo "Installing dependencies..."
+            npm install
+            echo "Building the project..."
+            npm run build
