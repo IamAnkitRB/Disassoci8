@@ -21,6 +21,7 @@ jobs:
           node-version: 20.x
 
       # Step 3: SSH into the Ubuntu instance and update the app
+      # Step 3: SSH into the Ubuntu instance and update the app
       - name: SSH, Build, and Restart PM2
         uses: appleboy/ssh-action@v0.1.9
         with:
@@ -31,6 +32,7 @@ jobs:
           script: |
             echo "Navigating to the project directory..."
             cd Disassoci8
+            echo "Pulling the latest code..."
             echo "Pulling the latest code..."
             git pull origin main
             echo "Installing dependencies..."
