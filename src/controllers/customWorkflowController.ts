@@ -162,16 +162,25 @@ export const updateCustomWorkflowAction = async (
             typeDefinition: {
               name: 'optionsInput',
               type: 'enumeration',
-              fieldType: 'checkbox',
+              fieldType: 'select',
               optionsUrl: `${API_BASE_URL}/hubspot/fetchOptions`,
             },
             supportedValueTypes: ['STATIC_VALUE'],
             isRequired: true,
           },
+          {
+            typeDefinition: {
+              name: 'optionValue',
+              type: 'string',
+              fieldType: 'text',
+            },
+            supportedValueTypes: ['STATIC_VALUE'],
+            isRequired: false,
+          },
         ],
         labels: {
           en: {
-            actionName: 'Disassociate Objects 2.0',
+            actionName: 'Disassociate Objects',
             actionDescription:
               'This action will disassociate two objects. The source object is defined by the "Workflow Type"',
             actionCardContent: 'Disassociate objects from one another',
@@ -179,6 +188,7 @@ export const updateCustomWorkflowAction = async (
               objectInput: 'Object To Disassociate',
               selectionInput: 'Disassociate on the basis of',
               optionsInput: 'Select property/association label',
+              optionValue: 'Enter the property value',
             },
             inputFieldDescriptions: {
               objectInput:
@@ -187,6 +197,8 @@ export const updateCustomWorkflowAction = async (
                 'The basis of disassociation i.e. Properties or Association Label',
               optionsInput:
                 'The property or association label via which you want to disassociate the objects',
+              optionValue:
+                'The object will be disassociated if the property matches this value',
             },
           },
         },

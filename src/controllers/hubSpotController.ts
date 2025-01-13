@@ -416,10 +416,9 @@ export const disassociateObjectsViaPropV2 = async (
         `Fetched properties for toObjectId ${toObjectId}: ${JSON.stringify(toObjectProps)}`,
       );
 
-      const propertyValue =
-        toObjectProps?.properties?.[optionsInput.toLowerCase()];
+      const propertyValue = toObjectProps?.properties?.[optionsInput];
       logger.info(
-        `Property value for ${optionsInput.toLowerCase()} of toObjectId ${toObjectId}: ${propertyValue}`,
+        `Property value for ${optionsInput} of toObjectId ${toObjectId}: ${propertyValue}`,
       );
 
       // Only disassociate if the property value matches
