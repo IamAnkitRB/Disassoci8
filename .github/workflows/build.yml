@@ -29,6 +29,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
+            echo "Navigating to the project directory..."
+            cd Disassoci8
             echo "Updating repository on the instance..."
             git pull origin main
             echo "Installing dependencies..."
