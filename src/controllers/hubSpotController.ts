@@ -400,13 +400,13 @@ export const disassociateObjectsViaPropV2 = async (
       const propertyValue =
         toObjectProps?.properties?.[optionsInput.toLowerCase()];
 
-      console.log(
+      logger.info(
         `Checking object ID ${toObjectId} with property ${optionsInput}: ${propertyValue}`,
       );
 
       // Only disassociate if the property value matches
       if (propertyValue === optionValue) {
-        console.log(
+        logger.info(
           `Disassociating object ID ${toObjectId} as it matches the condition.`,
         );
 
@@ -419,7 +419,7 @@ export const disassociateObjectsViaPropV2 = async (
           associationTypeId,
         );
       } else {
-        console.log(
+        logger.info(
           `Skipping object ID ${toObjectId} as it does not match the condition.`,
         );
       }
