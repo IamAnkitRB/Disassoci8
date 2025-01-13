@@ -369,8 +369,11 @@ export const disassociateObjectsViaPropV2 = async (
   res: Response,
 ): Promise<any> => {
   try {
+    logger.info(`Request received: ${JSON.stringify(req.body)}`);
+
     const { origin, object, inputFields } = req.body;
     const hubId: string = origin.portalId;
+    logger.info(`Hub ID: ${hubId}`);
 
     const fromObjectType: string = object?.objectType;
     const fromObjectId: string = object?.objectId;
@@ -379,29 +382,44 @@ export const disassociateObjectsViaPropV2 = async (
     const optionValue: string = inputFields?.optionValue;
     const associationTypeId: [string] = inputFields?.associationLabelInput;
 
+    logger.info(`fromObjectType: ${fromObjectType}`);
+    logger.info(`fromObjectId: ${fromObjectId}`);
+    logger.info(`toObjectType: ${toObjectType}`);
+    logger.info(`optionsInput: ${optionsInput}`);
+    logger.info(`optionValue: ${optionValue}`);
+    logger.info(`associationTypeId: ${associationTypeId}`);
+
     const toObjectIdList: any = await listAllAssociatedObjects(
       hubId,
       fromObjectType,
       fromObjectId,
       toObjectType,
     );
+    logger.info(
+      `Associated objects retrieved: ${JSON.stringify(toObjectIdList)}`,
+    );
 
     const toObjectIdArray = toObjectIdList?.results?.map(
       (item: any) => item.toObjectId,
     );
+    logger.info(`toObjectIdArray: ${JSON.stringify(toObjectIdArray)}`);
 
     for (const toObjectId of toObjectIdArray) {
+      logger.info(`Processing toObjectId: ${toObjectId}`);
+
       const toObjectProps = await fetchObjectDetailsWithId(
         hubId,
         toObjectType,
         toObjectId,
       );
+      logger.info(
+        `Fetched properties for toObjectId ${toObjectId}: ${JSON.stringify(toObjectProps)}`,
+      );
 
       const propertyValue =
         toObjectProps?.properties?.[optionsInput.toLowerCase()];
-
       logger.info(
-        `Checking object ID ${toObjectId} with property ${optionsInput}: ${propertyValue}`,
+        `Property value for ${optionsInput.toLowerCase()} of toObjectId ${toObjectId}: ${propertyValue}`,
       );
 
       // Only disassociate if the property value matches
@@ -418,6 +436,7 @@ export const disassociateObjectsViaPropV2 = async (
           toObjectId,
           associationTypeId,
         );
+        logger.info(`Successfully disassociated object ID ${toObjectId}.`);
       } else {
         logger.info(
           `Skipping object ID ${toObjectId} as it does not match the condition.`,
@@ -425,12 +444,14 @@ export const disassociateObjectsViaPropV2 = async (
       }
     }
 
+    logger.info('All objects processed successfully.');
     return res.status(200).send({
       success: true,
       message: 'Objects Disassociated Successfully',
     });
   } catch (error: any) {
     logger.error(`Error while disassociating objects: ${error.stack}`);
+    logger.error(`Error details: ${JSON.stringify(error, null, 2)}`);
     return res.status(500).json({
       success: false,
       message: 'Internal Server Error',
