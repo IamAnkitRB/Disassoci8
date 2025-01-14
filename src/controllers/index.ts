@@ -5,7 +5,6 @@ import {
   fetchOptions,
   fethcAssociationLabels,
   disassociateObjects,
-  disassociateObjectsViaPropV2,
 } from './hubSpotController';
 import {
   createCustomWorkflowAction,
@@ -20,7 +19,6 @@ export default {
   fetchOptions,
   fethcAssociationLabels,
   disassociateObjects,
-  disassociateObjectsViaPropV2,
   createCustomWorkflowAction,
   createCustomWorkflowActionV2,
   updateCustomWorkflowAction,

@@ -188,74 +188,6 @@ export const fethcAssociationLabels = async (
   }
 };
 
-/**
- * Disassociates two objects in HubSpot using their object types and association type IDs.
- * @param {Request} req - Express request object containing necessary details in the body.
- * @param {Response} res - Express response object.
- * @returns {Promise<any>} - Sends a response indicating success or failure of the operation.
- */
-export const disassociateObjects = async (
-  req: Request,
-  res: Response,
-): Promise<any> => {
-  try {
-    const { origin, object, inputFields } = req.body;
-    const hubId = origin.portalId;
-
-    const fromObjectType = object?.objectType;
-    const fromObjectId = object?.objectId;
-    const toObjectType = inputFields?.objectInput;
-    const associationTypeId = inputFields?.associationLabelInput;
-    const withProperty = inputFields?.optionsInput;
-    const withPropertyValue = inputFields?.optionsValueInput;
-
-    const toObjectIdList: any = await listAllAssociatedObjects(
-      hubId,
-      fromObjectType,
-      fromObjectId,
-      toObjectType,
-    );
-
-    const toObjectIdArray = toObjectIdList?.results?.map(
-      (item: any) => item.toObjectId,
-    );
-
-    if (!fromObjectType || !toObjectType || !associationTypeId) {
-      res.status(400).json({
-        success: false,
-        message: 'Missing required fields for disassociation.',
-      });
-    }
-
-    const response = await disassociateTwoObjects(
-      hubId,
-      fromObjectType,
-      fromObjectId,
-      toObjectType,
-      toObjectIdArray,
-      associationTypeId,
-    );
-
-    if (response) {
-      return res.status(200).send({
-        success: true,
-        message: 'Objects Disassociated Successfully',
-      });
-    } else {
-      return res.status(400).send({
-        success: false,
-        message: 'Error While Disassociating Objects',
-      });
-    }
-  } catch (error: any) {
-    logger.error(`Error while disassociating objects: ${error.stack}`);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal Server Error',
-    });
-  }
-};
-
 export const fetchOptions = async (
   req: Request,
   res: Response,
@@ -304,67 +236,13 @@ export const fetchOptions = async (
   }
 };
 
-export const disassociateObjectsviaProp = async (
-  req: Request,
-  res: Response,
-): Promise<any> => {
-  try {
-    const { origin, object, inputFields } = req.body;
-    const hubId = origin.portalId;
-
-    const fromObjectType = object?.objectType;
-    const fromObjectId = object?.objectId;
-    const toObjectType = inputFields?.objectInput;
-    const associationTypeId = inputFields?.associationLabelInput;
-
-    const toObjectIdList: any = await listAllAssociatedObjects(
-      hubId,
-      fromObjectType,
-      fromObjectId,
-      toObjectType,
-    );
-
-    const toObjectIdArray = toObjectIdList?.results?.map(
-      (item: any) => item.toObjectId,
-    );
-
-    if (!fromObjectType || !toObjectType || !associationTypeId) {
-      res.status(400).json({
-        success: false,
-        message: 'Missing required fields for disassociation.',
-      });
-    }
-
-    const response = await disassociateTwoObjects(
-      hubId,
-      fromObjectType,
-      fromObjectId,
-      toObjectType,
-      toObjectIdArray,
-      associationTypeId,
-    );
-
-    if (response) {
-      return res.status(200).send({
-        success: true,
-        message: 'Objects Disassociated Successfully',
-      });
-    } else {
-      return res.status(400).send({
-        success: false,
-        message: 'Error While Disassociating Objects',
-      });
-    }
-  } catch (error: any) {
-    logger.error(`Error while disassociating objects: ${error.stack}`);
-    return res.status(500).json({
-      success: false,
-      message: 'Internal Server Error',
-    });
-  }
-};
-
-export const disassociateObjectsViaPropV2 = async (
+/**
+ * Disassociates two objects in HubSpot using their object types and association type IDs.
+ * @param {Request} req - Express request object containing necessary details in the body.
+ * @param {Response} res - Express response object.
+ * @returns {Promise<any>} - Sends a response indicating success or failure of the operation.
+ */
+export const disassociateObjects = async (
   req: Request,
   res: Response,
 ): Promise<any> => {
@@ -378,16 +256,9 @@ export const disassociateObjectsViaPropV2 = async (
     const fromObjectType: string = object?.objectType;
     const fromObjectId: string = object?.objectId;
     const toObjectType: string = inputFields?.objectInput;
+    const selectionInputType: string = inputFields?.selectionInput;
     const optionsInput: string = inputFields?.optionsInput;
     const optionValue: string = inputFields?.optionValue;
-
-    logger.info(`fromObjectType: ${fromObjectType}`);
-    logger.info(`fromObjectId: ${fromObjectId}`);
-    logger.info(`toObjectType: ${toObjectType}`);
-    logger.info(`optionsInput: ${optionsInput}`);
-    logger.info(`optionValue: ${optionValue}`);
-
-    let associationTypeId: any = [];
 
     const toObjectIdList: any = await listAllAssociatedObjects(
       hubId,
@@ -399,61 +270,84 @@ export const disassociateObjectsViaPropV2 = async (
       `Associated objects retrieved: ${JSON.stringify(toObjectIdList)}`,
     );
 
-    toObjectIdList.results.forEach((item: any) => {
-      item.associationTypes.forEach((assocType: any) => {
-        if (assocType.typeId) {
-          associationTypeId.push(assocType.typeId);
-        }
+    if (toObjectIdList?.results.length) {
+      let associationTypeId: any = new Set();
+
+      toObjectIdList.results.forEach((item: any) => {
+        item.associationTypes.forEach((assocType: any) => {
+          if (assocType.typeId) {
+            associationTypeId.add(assocType.typeId);
+          }
+        });
       });
-    });
 
-    logger.info(
-      `Association labels collected: ${JSON.stringify(associationTypeId)}`,
-    );
+      associationTypeId = Array.from(associationTypeId);
 
-    const toObjectIdArray = toObjectIdList?.results?.map(
-      (item: any) => item.toObjectId,
-    );
-    logger.info(`toObjectIdArray: ${JSON.stringify(toObjectIdArray)}`);
-
-    for (const toObjectId of toObjectIdArray) {
-      logger.info(`Processing toObjectId: ${toObjectId}`);
-
-      const toObjectProps = await fetchObjectDetailsWithId(
-        hubId,
-        toObjectType,
-        toObjectId,
-        optionsInput,
-      );
       logger.info(
-        `Fetched properties for toObjectId ${toObjectId}: ${JSON.stringify(toObjectProps)}`,
+        `Association labels collected: ${JSON.stringify(associationTypeId)}`,
       );
 
-      const propertyValue = toObjectProps?.properties?.[optionsInput];
-      logger.info(
-        `Property value for ${optionsInput} of toObjectId ${toObjectId}: ${propertyValue}`,
+      const toObjectIdArray = toObjectIdList?.results?.map(
+        (item: any) => item.toObjectId,
       );
+      logger.info(`toObjectIdArray: ${JSON.stringify(toObjectIdArray)}`);
+      for (const toObjectId of toObjectIdArray) {
+        logger.info(`Processing toObjectId: ${toObjectId}`);
 
-      // Only disassociate if the property value matches
-      if (propertyValue === optionValue) {
-        logger.info(
-          `Disassociating object ID ${toObjectId} as it matches the condition.`,
-        );
+        if (selectionInputType === 'property') {
+          const toObjectProps = await fetchObjectDetailsWithId(
+            hubId,
+            toObjectType,
+            toObjectId,
+            optionsInput,
+          );
+          logger.info(
+            `Fetched properties for toObjectId ${toObjectId}: ${JSON.stringify(toObjectProps)}`,
+          );
 
-        await disassociateTwoObjects(
-          hubId,
-          fromObjectType,
-          fromObjectId,
-          toObjectType,
-          toObjectId,
-          associationTypeId,
-        );
-        logger.info(`Successfully disassociated object ID ${toObjectId}.`);
-      } else {
-        logger.info(
-          `Skipping object ID ${toObjectId} as it does not match the condition.`,
-        );
+          const propertyValue = toObjectProps?.properties?.[optionsInput];
+          logger.info(
+            `Property value for ${optionsInput} of toObjectId ${toObjectId}: ${propertyValue}`,
+          );
+          // Only disassociate if the property value matches
+          if (propertyValue === optionValue) {
+            logger.info(
+              `Disassociating object ID ${toObjectId} as it matches the condition.`,
+            );
+
+            await disassociateTwoObjects(
+              hubId,
+              fromObjectType,
+              fromObjectId,
+              toObjectType,
+              toObjectId,
+              associationTypeId,
+            );
+            logger.info(`Successfully disassociated object ID ${toObjectId}.`);
+          } else {
+            logger.info(
+              `Skipping object ID ${toObjectId} as it does not match the condition.`,
+            );
+          }
+        } else if (
+          selectionInputType === 'associationLabel' &&
+          associationTypeId?.includes(optionsInput)
+        ) {
+          // Disassociating object based on the provided association label
+          await disassociateTwoObjects(
+            hubId,
+            fromObjectType,
+            fromObjectId,
+            toObjectType,
+            toObjectId,
+            [optionsInput],
+          );
+        }
       }
+    } else {
+      logger.info(
+        `Object with objectId : ${fromObjectId} is not associated to any object of type ${toObjectType}`,
+      );
     }
 
     logger.info('All objects processed successfully.');

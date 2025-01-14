@@ -8,6 +8,6 @@ router.post('/fetchObjects', controllers.fetchObejcts);
 router.post('/fetchProps', controllers.fetchProperties);
 router.post('/fetchOptions', controllers.fetchOptions);
 router.post('/fethcAssociationLabels', controllers.fethcAssociationLabels);
-router.post('/disassociate', controllers.disassociateObjectsViaPropV2);
+router.post('/disassociate', controllers.disassociateObjects);
 
 export default router;

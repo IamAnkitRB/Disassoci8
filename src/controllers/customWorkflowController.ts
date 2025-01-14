@@ -75,7 +75,7 @@ export const createCustomWorkflowAction = async (
         ],
         labels: {
           en: {
-            actionName: 'Disassociate Objects',
+            actionName: 'Disassociate Objects Test',
             actionDescription:
               'This action will disassociate two objects. The source object is defined by the "Workflow Type"',
             actionCardContent: 'Disassociate objects from one another',
