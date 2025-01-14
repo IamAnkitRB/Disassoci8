@@ -380,14 +380,14 @@ export const disassociateObjectsViaPropV2 = async (
     const toObjectType: string = inputFields?.objectInput;
     const optionsInput: string = inputFields?.optionsInput;
     const optionValue: string = inputFields?.optionValue;
-    const associationTypeId: [string] = inputFields?.associationLabelInput;
 
     logger.info(`fromObjectType: ${fromObjectType}`);
     logger.info(`fromObjectId: ${fromObjectId}`);
     logger.info(`toObjectType: ${toObjectType}`);
     logger.info(`optionsInput: ${optionsInput}`);
     logger.info(`optionValue: ${optionValue}`);
-    logger.info(`associationTypeId: ${associationTypeId}`);
+
+    let associationTypeId: any = [];
 
     const toObjectIdList: any = await listAllAssociatedObjects(
       hubId,
@@ -397,6 +397,18 @@ export const disassociateObjectsViaPropV2 = async (
     );
     logger.info(
       `Associated objects retrieved: ${JSON.stringify(toObjectIdList)}`,
+    );
+
+    toObjectIdList.results.forEach((item: any) => {
+      item.associationTypes.forEach((assocType: any) => {
+        if (assocType.typeId) {
+          associationTypeId.push(assocType.typeId);
+        }
+      });
+    });
+
+    logger.info(
+      `Association labels collected: ${JSON.stringify(associationTypeId)}`,
     );
 
     const toObjectIdArray = toObjectIdList?.results?.map(
