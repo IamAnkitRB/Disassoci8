@@ -62,8 +62,20 @@ export const handleOAuthCallback = async (
     const expireTime = new Date();
     expireTime.setSeconds(expireTime.getSeconds() + expiresIn);
 
-    const newUser = await prisma.user.create({
-      data: {
+    const newUser = await prisma.user.upsert({
+      where: {
+        hubId: userData?.hub_id.toString(),
+      },
+      update: {
+        user: userData.user,
+        userId: userData.user_id.toString(),
+        appId: userData.app_id.toString(),
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        expireTime: expireTime,
+        updatedAt: new Date(),
+      },
+      create: {
         user: userData.user,
         userId: userData.user_id.toString(),
         appId: userData.app_id.toString(),
