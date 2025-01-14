@@ -131,7 +131,7 @@ export const fetchProperties = async (
 
     const allObjectProperties: any = [];
     response.map((prop: any) => {
-      allObjectProperties.push({ value: prop.label, label: prop.label });
+      allObjectProperties.push({ value: prop.name, label: prop.label });
     });
 
     return res.status(200).json({
@@ -411,6 +411,7 @@ export const disassociateObjectsViaPropV2 = async (
         hubId,
         toObjectType,
         toObjectId,
+        optionsInput,
       );
       logger.info(
         `Fetched properties for toObjectId ${toObjectId}: ${JSON.stringify(toObjectProps)}`,

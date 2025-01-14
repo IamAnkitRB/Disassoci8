@@ -229,10 +229,11 @@ export const fetchObjectDetailsWithId = async (
   hubId: string,
   objectType: string,
   objectId: string,
+  optionsInput: string,
 ): Promise<any> => {
   try {
     const accessToken = await ensureValidAccessToken(hubId);
-    const url = `https://api.hubapi.com/crm/v3/objects/${objectType}/${objectId}?archived=false`;
+    const url = `https://api.hubapi.com/crm/v3/objects/${objectType}/${objectId}?properties=${optionsInput}`;
 
     const response = await axios.get(url, {
       headers: {
