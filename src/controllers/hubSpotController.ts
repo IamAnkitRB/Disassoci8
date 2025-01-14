@@ -274,7 +274,7 @@ export const fetchOptions = async (
       const response = await fetchObjectProperties(hubId, toObjectType);
 
       response.map((prop: any) => {
-        optionResponse.push({ value: prop.label, label: prop.label });
+        optionResponse.push({ value: prop.name, label: prop.label });
       });
     } else if (selectionInput?.value === 'associationLabel') {
       const response = await fetchAssociationLabels(
