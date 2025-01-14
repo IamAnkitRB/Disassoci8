@@ -329,10 +329,7 @@ export const disassociateObjects = async (
               `Skipping object ID ${toObjectId} as it does not match the condition.`,
             );
           }
-        } else if (
-          selectionInputType === 'associationLabel' &&
-          associationTypeId?.includes(optionsInput)
-        ) {
+        } else if (selectionInputType === 'associationLabel') {
           // Disassociating object based on the provided association label
           await disassociateTwoObjects(
             hubId,
