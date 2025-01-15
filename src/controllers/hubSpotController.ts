@@ -310,7 +310,7 @@ export const disassociateObjects = async (
         toObjectIdArray = toObjectIdList?.results
           ?.filter((item: any) =>
             item.associationTypes.some(
-              (assocType: any) => assocType.typeId === parseInt(optionValue),
+              (assocType: any) => assocType.typeId === Number(optionValue),
             ),
           )
           .map((item: any) => item.toObjectId);
