@@ -299,9 +299,21 @@ export const disassociateObjects = async (
         `Association labels collected: ${JSON.stringify(associationTypeId)}`,
       );
 
-      const toObjectIdArray = toObjectIdList?.results?.map(
-        (item: any) => item.toObjectId,
-      );
+      let toObjectIdArray = [];
+      if (selectionInputType === 'property') {
+        toObjectIdArray = toObjectIdList?.results?.map(
+          (item: any) => item.toObjectId,
+        );
+      } else {
+        toObjectIdArray = toObjectIdList?.results
+          ?.filter((item: any) =>
+            item.associationTypes.some(
+              (assocType: any) => assocType.typeId === parseInt(optionValue),
+            ),
+          )
+          .map((item: any) => item.toObjectId);
+      }
+
       logger.info(`toObjectIdArray: ${JSON.stringify(toObjectIdArray)}`);
       for (const toObjectId of toObjectIdArray) {
         logger.info(`Processing toObjectId: ${toObjectId}`);
