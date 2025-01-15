@@ -301,10 +301,12 @@ export const disassociateObjects = async (
 
       let toObjectIdArray = [];
       if (selectionInputType === 'property') {
+        logger.info(`Generating object ID array with property`);
         toObjectIdArray = toObjectIdList?.results?.map(
           (item: any) => item.toObjectId,
         );
       } else {
+        logger.info(`Generating object ID array with association label`);
         toObjectIdArray = toObjectIdList?.results
           ?.filter((item: any) =>
             item.associationTypes.some(
