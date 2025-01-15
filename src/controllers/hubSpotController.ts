@@ -309,9 +309,6 @@ export const disassociateObjects = async (
         logger.info(`Generating object ID array with association label`);
         toObjectIdArray = toObjectIdList?.results
           ?.filter((item: any) => {
-            logger.info(`Inspecting item: ${JSON.stringify(item)}`);
-
-            // Check each association type for a match
             const hasMatchingTypeId = item.associationTypes?.some(
               (assocType: any) => {
                 const isMatch = assocType.typeId === Number(optionsInput);
@@ -328,13 +325,8 @@ export const disassociateObjects = async (
             return hasMatchingTypeId;
           })
           .map((item: any) => {
-            logger.info(`Adding to toObjectIdArray: ${item.toObjectId}`);
             return item.toObjectId;
           });
-
-        logger.info(
-          `toObjectIdArray after filtering: ${JSON.stringify(toObjectIdArray)}`,
-        );
       }
 
       logger.info(`toObjectIdArray: ${JSON.stringify(toObjectIdArray)}`);
