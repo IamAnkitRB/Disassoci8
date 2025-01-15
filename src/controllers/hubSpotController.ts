@@ -314,9 +314,9 @@ export const disassociateObjects = async (
             // Check each association type for a match
             const hasMatchingTypeId = item.associationTypes?.some(
               (assocType: any) => {
-                const isMatch = assocType.typeId === Number(optionValue);
+                const isMatch = assocType.typeId === Number(optionsInput);
                 logger.info(
-                  `Checking assocType: ${JSON.stringify(assocType)} | optionValue: ${optionValue} | Match: ${isMatch}`,
+                  `Checking assocType: ${JSON.stringify(assocType)} | optionsInput: ${optionsInput} | Match: ${isMatch}`,
                 );
                 return isMatch;
               },
