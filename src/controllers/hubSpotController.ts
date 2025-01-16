@@ -86,11 +86,9 @@ export const handleOAuthCallback = async (
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Authorization successful',
-      data: newUser,
-    });
+    return res.redirect(
+      `https://app.hubspot.com/integrations-settings/${newUser.hubId}/installed`,
+    );
   } catch (error: any) {
     logger.error(`Error exchanging token: ${error.message}`);
     return res.status(500).send('Error during OAuth process');
