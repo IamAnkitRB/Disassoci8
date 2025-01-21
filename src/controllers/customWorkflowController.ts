@@ -191,25 +191,25 @@ export const updateCustomWorkflowAction = async (
         ],
         labels: {
           en: {
-            actionName: 'Disassociate Objects',
+            actionName: 'Remove Association',
             actionDescription:
-              'This action will disassociate two objects. The source object is defined by the "Workflow Type"',
-            actionCardContent: 'Disassociate objects from one another',
+              'This action will remove the association between two objects. The source object is defined by the "Workflow Type".',
+            actionCardContent: 'Remove the association between objects',
             inputFieldLabels: {
-              objectInput: 'Object To Disassociate',
-              selectionInput: 'Disassociate on the basis of',
-              optionsInput: 'Select property/association label',
-              optionValue: 'Enter the property value',
+              objectInput: 'Object to Update Association For',
+              selectionInput: 'Remove Association Based On',
+              optionsInput: 'Select Property/Association Label',
+              optionValue: 'Specify the Property Value',
             },
             inputFieldDescriptions: {
               objectInput:
-                'Enter the object from which you want to disassociate',
+                'Specify the object for which you want to remove the association.',
               selectionInput:
-                'The basis of disassociation i.e. Properties or Association Label',
+                'Choose the criteria for removing the association, such as Properties or Association Labels.',
               optionsInput:
-                'The property or association label via which you want to disassociate the objects',
+                'Select the property or label that defines the association to remove.',
               optionValue:
-                'The object will be disassociated if the property matches this value',
+                'The association will be removed if the selected property matches the specified value (applicable only when property is chosen as the criteria).',
             },
           },
         },
