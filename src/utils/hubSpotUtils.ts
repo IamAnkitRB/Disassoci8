@@ -168,15 +168,14 @@ export const disassociateTwoObjects = async (
         logger.info(
           `Response status from disassociate api: ${response.status}`,
         );
+        logger.info(
+          `Successfully disassociated ${fromObjectType} from ${toObjectType} with association type ${associationType}`,
+        );
       } catch (error: any) {
         logger.error(
           `Error while making API request to disassociate objects: ${error.stack}`,
         );
       }
-
-      logger.info(
-        `Successfully disassociated ${fromObjectType} from ${toObjectType} with association type ${associationType}`,
-      );
     }
 
     return true;
